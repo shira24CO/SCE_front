@@ -1,23 +1,34 @@
-import { StyleSheet, Text, View, Image, TouchableOpacity, Button, Alert, TextInput, StatusBar} from 'react-native';
-import React, {useState, FC} from 'react';
+import { StyleSheet, Text, View, Image, TouchableOpacity, Button, Alert, TextInput, StatusBar } from 'react-native';
+import React, { useState, FC } from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import StudentAddPage from './Components/StudentAddPage';
+import StudentDetailsPage from './Components/StudentDetailsPage';
+import StudentListPage from './Components/StudentListPage';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
-const StudentListRow: FC<{name: string, id: string, imgUrl: string}> = ({name, id, imgUrl}) => {
-  return(
-    <View style={styles.listrow}>
-      <Image style={styles.avatar} source={require('./assets/man_4140048.png')} />
-      <View style={styles.info}>
-        <Text style={styles.name}>{name}</Text>
-        <Text style={styles.id}>{id}</Text>
-        </View>
-    </View>
-  )
-}
-export default function App() {
+// const Stack = createNativeStackNavigator();
+const Tab = createBottomTabNavigator();
+const StudentsListStack = createNativeStackNavigator();
 
+const StudentsListScreen: FC = () => {
   return (
-    <View style={styles.container}>
-      <StudentListRow name = "Shira Tzvi" id = "211777834" imgUrl="https://www.flaticon.com/free-icon/woman_4042422" />
-    </View>
+    <StudentsListStack.Navigator>
+      <StudentsListStack.Screen name="StudentListPage" component={StudentListPage} options={{ title: 'Students List' }} />
+      <StudentsListStack.Screen name="StudentDetailsPage" component={StudentDetailsPage} options={{ title: 'Student Details' }} />
+      <StudentsListStack.Screen name="StudentAddPage" component={StudentAddPage} options={{ title: 'Add New Student' }} />
+    </StudentsListStack.Navigator>
+  );
+}
+
+export default function App() {
+  return (
+    <NavigationContainer>
+      <Tab.Navigator>
+        <Tab.Screen name="StudentsListScreen" component={StudentsListScreen} options={{ headerShown: false }} />
+        <Tab.Screen name="StudentAddPage" component={StudentAddPage} options={{ title: 'Add New Student' }} />
+      </Tab.Navigator>
+    </NavigationContainer >
   );
 }
 
@@ -27,30 +38,6 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'column',
   },
-  listrow: {
-    marginHorizontal: 5,
-    flexDirection: 'row',
-    elevation: 1,
-    borderRadius: 5,
-  },
-  avatar: {
-    margin: 10,
-    height: 100,
-    width: 100,
-  },
-  info: {
-    flexDirection: 'column',
-    justifyContent: 'center'
-  },
-  name: {
-    marginBottom: 5,
-    fontSize: 25,
-    fontWeight: 'bold'
-  },
-  id: {
-    marginBottom: 5,
-    fontSize: 20,
-  }
 
- 
 });
+

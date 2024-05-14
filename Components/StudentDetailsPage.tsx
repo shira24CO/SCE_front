@@ -21,7 +21,7 @@ const StudentDetailsPage: FC<{ route: any, navigation: any }> = ({ route, naviga
 
     return (
         <View style={styles.container}>
-            <Image style={styles.avatar} source={require('../assets/avatar.jpeg')} />
+            <Image style={styles.avatar} source={require('../assets/man_4140048.png')} />
             <Text style={styles.input}>{student?.name}</Text>
             <Text style={styles.input}>{student?.id}</Text>
             <Text style={styles.input}>{student?.imgUrl}</Text>
