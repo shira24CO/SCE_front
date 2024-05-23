@@ -1,182 +1,186 @@
-import React, { FC, useEffect, useState } from 'react';
-import { View, StyleSheet, Text, TextInput } from 'react-native';
-import { GoogleSignin, GoogleSigninButton, statusCodes } from '@react-native-google-signin/google-signin';
+import LoginApi from "../api/LoginApi";
+import {View,StyleSheet,Text,TextInput,Button, ImageBackground} from 'react-native'
+import { FC,useEffect, useState } from "react";
+import {GoogleSignin,GoogleSigninButton} from "@react-native-google-signin/google-signin";
 import { Feather } from '@expo/vector-icons';
-import StudentListPage from './StudentListPage'; // Import StudentListPage if needed
 
-const LoginPage: FC<{ navigation: any }> = ({ navigation }) => {
-    const [username, setUsername] = useState<string>("");
-    const [password, setPassword] = useState<string>("");
+const LoginPage:FC<{navigation:any}> = ({navigation}) =>{
+    const [username,setUsername] = useState<string>("");
+    const[password,setPassword] = useState<string>("");
+
+    const configureGoogleSignIn = () =>{
+        
+        GoogleSignin.configure(
+            {
+                webClientId:"1069055896862-i03lnt4fq90j7ll6ucc3250jkpt023ap.apps.googleusercontent.com"
+            }
+        );
+    }
 
     useEffect(() => {
         configureGoogleSignIn();
+        GoogleSignin.signOut();   
     }, []);
 
-    const configureGoogleSignIn = () => {
-        // Configure Google Sign-In
-        GoogleSignin.configure({
-            webClientId: '1069055896862-i03lnt4fq90j7ll6ucc3250jkpt023ap.apps.googleusercontent.com', // From Google Developer Console
-            offlineAccess: true,
-        });
-    }
-
-    const handleLoginWithEmailAndPassword = async () => {
-        // Handle login with email and password
-    };
-
-    const handleGoogleSignIn = async () => {
+    const handleGoogleSignIn = async () =>{
         try{
             console.log("Button clicked");
             await GoogleSignin.hasPlayServices();
             const userInfo = await GoogleSignin.signIn();
-            console.log("Login Page-User info"+userInfo.idToken);
+            //console.log("Login Page-User info"+userInfo.idToken);
             const tokenToServer = userInfo.idToken;
-            // const serverResponse = await LoginApi.loginWithGoogle(tokenToServer)
-            // if(serverResponse.data.userTokens){
-            //     navigation.navigate('StudentList')
-            // }
+            const serverResponse = await LoginApi.loginWithGoogle(tokenToServer)
+            if(serverResponse.data.userTokens){
+                navigation.navigate('StudentList')
+            }
 
             
         }catch(error){
             console.log("Error sign-in with google: "+error);
             
         }
-    };
+    }
+
+
+    const handleLoginWithEmailAndPassword = async (userDetails:{email:string,password:string}) =>{
+        const res =  await LoginApi.loginWithEmailAndPassword(userDetails.email,userDetails.password);
+        if(res.ok){
+            navigation.navigate('StudentList',{accessToken:res.data.accessToken,user:res.data.userName})
+            console.log('Navigating to home page...');
+            
+        }
+    }
+
 
     return (
         <View style={styles.loginPageContainer}>
-            <Text style={styles.appName}>StudentHub</Text>
-            <Text style={styles.introText}>Welcome to StudentHub! Connect with your classmates, access study resources, and stay updated with the latest events in your academic community.</Text>
-
             <Text style={styles.topMessage}>Login Here!</Text>
-
+            
             <View style={styles.details}>
                 <View style={styles.email}>
                     <Text style={styles.fieldTitle}>Email</Text>
-                    <TextInput
-                        style={styles.input}
+                    <TextInput style={styles.input}
                         value={username}
                         onChangeText={setUsername}
                         placeholder="Your Email..."
-                    />
+                    ></TextInput>
                 </View>
 
                 <View style={styles.password}>
                     <Text style={styles.fieldTitle}>Password</Text>
-                    <TextInput
-                        style={styles.input}
+                    <TextInput style={styles.input}
                         value={password}
                         textContentType='password'
                         onChangeText={setPassword}
                         placeholder="Your password..."
                         secureTextEntry={true}
-                    />
-                </View>
+                    >
+                    </TextInput>
+                </View> 
             </View>
 
             <View style={styles.loginRegister}>
                 <View style={styles.login}>
                     <Text style={styles.loginText}>Log In</Text>
-                    <Feather
-                        name="arrow-right-circle"
-                        size={44}
-                        color="black"
-                        onPress={async () => {
-                            await handleLoginWithEmailAndPassword();
+                    <Feather name="arrow-right-circle" size={44} color="black" onPress={async()=> {
+                        await handleLoginWithEmailAndPassword({
+                            email: username,
+                            password:password
+                        }) 
                         }}
                         style={styles.arrowLogIn}
-                    />
+                     />
                 </View>
-
-                <Text>_______________________or___________________________</Text>
                 
+                <Text>
+                    _______________________or___________________________
+                </Text>
                 <GoogleSigninButton
                     size={GoogleSigninButton.Size.Wide}
                     color={GoogleSigninButton.Color.Dark}
-                    onPress={handleGoogleSignIn}
+                    onPress = {handleGoogleSignIn}
                 />
-
                 <Text style={styles.register}>
-                    Doesn't have an account yet?
-                    <Text style={styles.underline} onPress={() => navigation.navigate('RegisterPage')}>
-                        Register Here
+                    Doesn't have an account yet? 
+                    <Text style={styles.underline} onPress={()=>navigation.navigate('RegisterPage')}>
+                          Register Here
                     </Text>
                 </Text>
-            </View>
+            </View>     
         </View>
+        
     );
-};
 
-const styles = StyleSheet.create({
-    loginPageContainer: {
-        flex: 1,
+}
+
+const styles =StyleSheet.create(
+{
+    loginPageContainer:{
+        flex:1,
         alignItems: 'center',
-        flexDirection: 'column',
-        backgroundColor: '#d8b5ff'
+        flexDirection:'column',
+        backgroundColor:'#e3a724'
     },
-    appName: {
-        fontWeight: 'bold',
-        fontSize: 30,
-        marginVertical: 20,
+    topMessage:{
+        top:30,
+        fontWeight:'bold',
+        fontSize:25
+        
     },
-    introText: {
-        textAlign: 'center',
-        marginBottom: 20,
-        paddingHorizontal: 20,
+    details:{
+        top:70,
+        flexDirection:'column'
     },
-    topMessage: {
-        fontWeight: 'bold',
-        fontSize: 25
+    email:{
+        flexDirection:'column',
+        bottom:10
     },
-    details: {
-        marginTop: 20,
-        marginBottom: 30,
-        flexDirection: 'column'
+    password:{
+        flexDirection:'column',
+        bottom:10,
+        top:10
     },
-    email: {
-        marginBottom: 20,
-        flexDirection: 'column',
-    },
-    password: {
-        marginBottom: 20,
-        flexDirection: 'column',
-    },
-    input: {
-        width: 300,
+    input:{
+        width:300,
         height: 40,
         borderWidth: 1,
         borderColor: 'black',
         borderRadius: 5,
         paddingHorizontal: 10,
     },
-    fieldTitle: {
-        marginBottom: 5,
+    fieldTitle:{
+        bottom:10
     },
-    login: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 20,
+    login:{
+        flexDirection:'row',
+        bottom:20,
+        justifyContent:'center',
+        alignItems:'center',
+        top:2
     },
-    loginText: {
-        fontWeight: 'bold',
-        fontSize: 20,
-        marginRight: 10,
+    loginText:{
+        fontWeight:'bold',
+        fontSize:20,
+        right:50
     },
-    arrowLogIn: {
-        marginRight: 10,
+    arrowLogIn:{
+        right:1,
     },
-    loginRegister: {
-        alignItems: 'center',
+    loginRegister:{
+        flexDirection:'column',
+        top:100,
+        bottom:100
     },
-    register: {
-        marginTop: 10,
-        fontWeight: 'bold',
-        fontSize: 15,
+    register:{
+        top:10,
+        fontWeight:'bold',
+        fontSize:15
     },
-    underline: {
-        textDecorationLine: 'underline'
+    underline:{
+        textDecorationLine: 'underline'   
     }
-});
+
+})
+    
 
 export default LoginPage;

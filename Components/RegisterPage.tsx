@@ -1,65 +1,58 @@
-import React, { FC, useState, useEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
+import {Button,View,Text,TextInput,StyleSheet, TouchableOpacity,Image, StatusBar, ScrollView} from 'react-native';
+import { useState,FC, useEffect } from 'react';
+import RegisterApi from '../api/RegisterApi';
 import { Feather } from '@expo/vector-icons';
 import { Fontisto } from '@expo/vector-icons';
 import { FontAwesome6 } from '@expo/vector-icons';
-import { StatusBar } from 'react-native';
+import AddPictureApi from '../api/AddPictureApi';
 
-const RegisterPage: FC<{ navigation: any }> = ({ navigation }) => {
-    const [userEmail, setUserEmail] = useState<string>("");
-    const [userPassword, setUserPassword] = useState<string>("");
-    const [userImage, setUserImage] = useState<string>("");
-    const [userAge, setUserAge] = useState<string>("");
-    const [userCountry, setUserCountry] = useState<string>("");
-    const [userInstitution, setUserInstitution] = useState<string>("");
-    const [userYear, setUserYear] = useState<string>("");
+const RegisterPage: FC<{navigation:any}> = ({navigation}) =>{
+    const [userEmail,setUserEmail] = useState<string>("");
+    const [userPassword,setUserPassword] = useState<string>("");
+    const [userImage,setUserImage] = useState<string>("");
+    const [userYear,setYearOfDegree] = useState<string>("");
+    const [userCountry,setUserCountry] = useState<string>("");
+    const[firstName,setFirstName] = useState<string>("");
+    const [lastName,setLastName] = useState<string>("");
+    const [userInstitution, setInstitutionName] = useState<string>("");
 
-    const handleUserRegister = async () => {
-        try {
-            // Validate user input
-            if (!userEmail || !userPassword || !userAge || !userCountry || !userInstitution || !userYear) {
-                alert("Please fill in all fields.");
-                return;
-            }
-    
-            // Make a POST request to your backend API endpoint to register the user
-            const response = await fetch('https://your-api-endpoint.com/register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    email: userEmail,
-                    password: userPassword,
-                    age: userAge,
-                    country: userCountry,
-                    institution: userInstitution,
-                    year: userYear,
-                    profileImage: userImage, // If you want to include the profile image
-                }),
-            });
-    
-            // Check if registration was successful
-            if (response.ok) {
-                // Registration successful, navigate to the next screen or perform other actions
-                console.log("User registered successfully!");
-                navigation.navigate('Login'); // Navigate to the login screen
-            } else {
-                // Registration failed, display error message
-                const errorData = await response.json();
-                alert(errorData.message || "Registration failed. Please try again.");
-            }
-        } catch (error) {
-            console.error("Error registering user:", error);
-            alert("An error occurred while registering. Please try again later.");
+    useEffect(()=>{AddPictureApi.askCameraPermission()},[]);
+
+    const handleErrorInRegistration = () =>{
+        setFirstName("");
+        setLastName("");
+        setUserEmail("");
+        setUserPassword("");
+        setYearOfDegree("");
+        setUserCountry("");
+        setInstitutionName("");
+
+    }
+
+    const handleUserRegister = async () =>{
+        const userImageUrl = await AddPictureApi.onSave(userImage);
+        console.log("handleUserRegister()--->url = "+userImageUrl);
+        
+        const resUserRegister = await RegisterApi.registerUser(firstName,lastName,userEmail,userPassword,userImageUrl,userYear,userCountry, userInstitution);
+        //User already exists in the application or email/password is missing
+        if(resUserRegister.status == 409){
+            handleErrorInRegistration();
+            return alert("A user with that email already exists");  
         }
-    };
-    
-
+        //User did not provide email or password
+        if(resUserRegister.status == 400){
+            handleErrorInRegistration();
+            return alert("One of the details is missing");
+        }
+       
+        if(resUserRegister.data.userTokens.accessToken){
+            navigation.navigate('StudentList',{accessToken:resUserRegister.data.userTokens.accessToken,userName:firstName+lastName})
+        }
+    }
     return (
-        <View style={styles.registrationPage}>
-            <ScrollView style={styles.scrollView} >
-                <View style={styles.heading}>
+        <View style = {styles.registrationPage}>
+            <ScrollView style = {styles.scrollView} >
+                <View style = {styles.heading}>
                     <Text style={styles.welcomeMessage}>
                         Welcome to StudentHub!
                     </Text>
@@ -68,152 +61,182 @@ const RegisterPage: FC<{ navigation: any }> = ({ navigation }) => {
                     </Text>
                 </View>
                 <View>
-                    {userImage == "" ? (
-                        <Image style={styles.avatar} source={require('../assets/man_4140048.png')} />
-                    ) : (
-                        <Image source={{ uri: userImage }} style={styles.avatar} />
-                    )}
+                    {userImage == "" && <Image style={styles.avatar} source={require('../assets/man_4140048.png')}/>}
+                    {userImage != "" && <Image source={{uri:userImage}} style={styles.avatar}/>}
                     <TouchableOpacity
-                        onPress={async () => {
-                            // Implement image upload logic here
-                        }}
+                            onPress= { async ()=> {
+                                const uri = await AddPictureApi.activateCamera();
+                                if(uri){
+                                    setUserImage(uri)}
+                                }
+                            }
                     >
                         <Fontisto name="camera" size={24} color="black" style={styles.cameraButton} />
                     </TouchableOpacity>
                     <TouchableOpacity
-                        onPress={async () => {
-                            // Implement image selection logic here
-                        }}
+                            onPress={async()=>{
+                                const uri =await AddPictureApi.openGallery();
+                                if(uri){
+                                    setUserImage(uri);
+                                }}
+                            }
                     >
                         <FontAwesome6 name="image" size={24} color="black" style={styles.galleryButton} />
                     </TouchableOpacity>
                 </View>
                 <View style={styles.registerDetails}>
                     <View style={styles.userdetail}>
-                        <Text>Email</Text>
-                        <TextInput
-                            style={styles.input}
-                            value={userEmail}
-                            onChangeText={setUserEmail}
-                            placeholder="Your Email goes here..."
-                            textContentType='emailAddress'
-                        />
+                                <Text>First Name</Text>
+                                <TextInput style={styles.input}
+                                    value={firstName}
+                                    onChangeText={setFirstName}
+                                    placeholder="First Name..."
+                                    textContentType='name'
+                                ></TextInput>
                     </View>
                     <View style={styles.userdetail}>
-                        <Text>Password</Text>
-                        <TextInput
-                            style={styles.input}
-                            value={userPassword}
-                            textContentType='password'
-                            onChangeText={setUserPassword}
-                            secureTextEntry={true}
-                            placeholder="Your Password goes here..."
-                        />
+                                <Text>Last Name</Text>
+                                <TextInput style={styles.input}
+                                    value={lastName}
+                                    onChangeText={setLastName}
+                                    placeholder="Last Name..."
+                                    textContentType='name'
+                                ></TextInput>
                     </View>
                     <View style={styles.userdetail}>
-                        <Text>Age</Text>
-                        <TextInput
-                            style={styles.input}
-                            value={userAge}
-                            onChangeText={setUserAge}
-                            placeholder="Your Age"
-                        />
+                            <Text>Email</Text>
+                            <TextInput style={styles.input}
+                                value={userEmail}
+                                onChangeText={setUserEmail}
+                                placeholder="Your Email goes here..."
+                                textContentType='emailAddress'
+                            ></TextInput>
                     </View>
+
                     <View style={styles.userdetail}>
-                        <Text>Country</Text>
-                        <TextInput
-                            style={styles.input}
-                            value={userCountry}
-                            onChangeText={setUserCountry}
-                            placeholder="Your Country"
-                            textContentType='countryName'
-                        />
+                            <Text>Password</Text>
+                            <TextInput style={styles.input}
+                                value={userPassword}
+                                textContentType='password'
+                                onChangeText={setUserPassword}
+                                secureTextEntry={true}
+                                placeholder="Your Password goes here..."
+                            ></TextInput>
                     </View>
+
                     <View style={styles.userdetail}>
-                        <Text>Institution</Text>
-                        <TextInput
-                            style={styles.input}
+                            <Text>YearOfDegree</Text>
+                            <TextInput style={styles.input}
+                                value={userYear}
+                                onChangeText={setYearOfDegree}
+                                placeholder="Your Year Of Degree"
+                            ></TextInput>
+                    </View>
+
+                    <View style={styles.userdetail}>
+                            <Text>Country</Text>
+                            <TextInput style={styles.input}
+                                value={userCountry}
+                                onChangeText={setUserCountry}
+                                placeholder="Your Country"
+                                textContentType='countryName'
+                            ></TextInput>
+                    </View>
+
+                    <View style={styles.userdetail}>
+                        <Text>Academic Institution</Text>
+                        <TextInput style={styles.input}
                             value={userInstitution}
-                            onChangeText={setUserInstitution}
-                            placeholder="Your Academic Institution"
+                            onChangeText={setInstitutionName}
+                            placeholder="Academic Institution"
                         />
                     </View>
-                    <View style={styles.userdetail}>
-                        <Text>Year of Study</Text>
-                        <TextInput
-                            style={styles.input}
-                            value={userYear}
-                            onChangeText={setUserYear}
-                            placeholder="Year of Study"
-                        />
-                    </View>
+                    
                 </View>
                 <View style={styles.registerBtn}>
                     <Text style={styles.registerText}>Register</Text>
-                    <Feather name="arrow-right-circle" size={44} color="black"
-                        onPress={() => handleUserRegister()}
+                    <Feather name="arrow-right-circle" size={44} color="green"
+                        onPress={handleUserRegister}
                         style={styles.registerArrow}
                     />
                 </View>
             </ScrollView>
         </View>
+        
+        
     )
 }
 
 const styles = StyleSheet.create({
-    registrationPage: {
-        marginTop: StatusBar.currentHeight,
-        flex: 1,
-        flexDirection: 'column',
-        backgroundColor: '#d8b5ff'
+    registrationPage:{
+        marginTop:StatusBar.currentHeight,
+        flex:1,
+        flexDirection:'column',
+        //alignItems:'center',
+        //backgroundColor:'#80f28a94'
     },
-    scrollView: {
+    scrollView:{
         marginHorizontal: 10,
-        backgroundColor: '#d8b5ff'
+        backgroundColor:'white'
     },
-    heading: {
-        marginBottom: 20,
+    heading:{
+        //top:20,
     },
-    welcomeMessage: {
-        fontWeight: 'bold',
-        fontSize: 30
+    welcomeMessage:{
+        fontWeight:'bold',
+        bottom:10,
+        fontSize:30
     },
-    descriptionMessage: {
-        fontSize: 20,
+    descriptionMessage:{
+        fontSize:25,
+        bottom:10
     },
-    registerDetails: {
-        marginTop: 20,
-        marginBottom: 30,
+    registerDetails:{
+        flexDirection:'column',
+        alignSelf:'center',
+        height:400
+
     },
-    userdetail: {
-        marginBottom: 20,
+    userdetail:{
+        top:30,
+        flexDirection:'column',
+        bottom:15
     },
-    input: {
-        width: '100%',
+    password:{
+        top:30,
+        flexDirection:'column',
+        bottom:15
+    },
+    input:{
+        width:300,
         height: 40,
         borderWidth: 1,
         borderColor: 'black',
         borderRadius: 5,
         paddingHorizontal: 10,
     },
-    cameraButton: {
-        position: 'absolute',
-        bottom: -15,
-        left: 15,
-        width: 50,
-        height: 50
+    cameraButton:{
+        position:'absolute',
+        bottom:-15,
+        left:15,
+        width:50,
+        height:50
     },
-    galleryButton: {
-        position: 'absolute',
-        bottom: -15,
-        right: 15,
-        width: 50,
-        height: 50
+    galleryButton:{
+        position:'absolute',
+        bottom:-15,
+        right:15,
+        width:50,
+        height:50
     },
-    avatar: {
-        alignSelf: 'center',
-        height: 150,
-        width: '100%',
+    addImage:{
+        
+    },
+    avatar:{
+        alignSelf:'center',
+        height:150,
+        width:'100%',
+        //margin: 10,
         borderRadius: 100,
         resizeMode:'contain'
     },
