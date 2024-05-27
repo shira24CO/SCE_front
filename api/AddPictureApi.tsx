@@ -26,7 +26,7 @@ const activateCamera = async() =>{
       console.log("Error while opening device camera: "+err);
       
     }
-    
+    return null;
   }
 
 const openGallery = async() =>{
@@ -40,6 +40,7 @@ const openGallery = async() =>{
       console.log("Error while opening device camera: "+err);
       
     }
+    return null;
 }
 
 
@@ -53,11 +54,11 @@ const onSave = async(imgUrl:string) =>{
     try{
         console.log("uploading image");
         const url = await PostModel.uploadImage(imgUrl);
-        //StudentModel.addStudent(student);
+        if (!url) throw new Error("Image upload failed");
         return url;
     }catch(err){
       console.log("Error in onSave() "+err);
-      
+      return null;
     }
   }
 

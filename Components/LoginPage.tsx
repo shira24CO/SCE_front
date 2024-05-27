@@ -3,6 +3,7 @@ import {View,StyleSheet,Text,TextInput,Button, ImageBackground} from 'react-nati
 import { FC,useEffect, useState } from "react";
 import {GoogleSignin,GoogleSigninButton} from "@react-native-google-signin/google-signin";
 import { Feather } from '@expo/vector-icons';
+import userModel from "../Model/UserModel";
 
 const LoginPage:FC<{navigation:any}> = ({navigation}) =>{
     const [username,setUsername] = useState<string>("");
@@ -19,7 +20,10 @@ const LoginPage:FC<{navigation:any}> = ({navigation}) =>{
 
     useEffect(() => {
         configureGoogleSignIn();
-        GoogleSignin.signOut();   
+        GoogleSignin.signOut();
+        navigation.setOptions({
+            headerRight:()=> <Text></Text>
+        })  
     }, []);
 
     const handleGoogleSignIn = async () =>{
@@ -27,11 +31,11 @@ const LoginPage:FC<{navigation:any}> = ({navigation}) =>{
             console.log("Button clicked");
             await GoogleSignin.hasPlayServices();
             const userInfo = await GoogleSignin.signIn();
-            //console.log("Login Page-User info"+userInfo.idToken);
+            console.log("Login Page-User info"+userInfo.idToken);
             const tokenToServer = userInfo.idToken;
             const serverResponse = await LoginApi.loginWithGoogle(tokenToServer)
             if(serverResponse.data.userTokens){
-                navigation.navigate('StudentList')
+                navigation.navigate('HomePage',{userName:userInfo.user.name,accessToken:serverResponse.data.userTokens.accessToken,refreshToken:serverResponse.data.userTokens.refreshToken})
             }
 
             
@@ -45,7 +49,7 @@ const LoginPage:FC<{navigation:any}> = ({navigation}) =>{
     const handleLoginWithEmailAndPassword = async (userDetails:{email:string,password:string}) =>{
         const res =  await LoginApi.loginWithEmailAndPassword(userDetails.email,userDetails.password);
         if(res.ok){
-            navigation.navigate('StudentList',{accessToken:res.data.accessToken,user:res.data.userName})
+            navigation.navigate('HomePage',{accessToken:res.data.accessToken,userName:res.data.userName,userId:res.data.userId,refreshToken:res.data.refreshToken})
             console.log('Navigating to home page...');
             
         }
@@ -119,7 +123,7 @@ const styles =StyleSheet.create(
         flex:1,
         alignItems: 'center',
         flexDirection:'column',
-        backgroundColor:'#e3a724'
+        backgroundColor:'#a1cfff'
     },
     topMessage:{
         top:30,

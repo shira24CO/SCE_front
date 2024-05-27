@@ -4,7 +4,6 @@ import apiClient from "./ClientApi"
 const registerUser = async(firstName:string,lastName:string,email:string,password:string,url:string,year:string,state:string, institution:string) =>{
     console.log("firstname: "+firstName);
     console.log("lastname: "+lastName);
-    
     console.log("username: "+email);
     console.log("password: "+password);
     console.log("year: " +year);

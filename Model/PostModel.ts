@@ -6,7 +6,7 @@ export type Post = {
     _id:string,
     postText: string,
     owner:string
-    postImageUrl: string,
+    postImageUrl: string | null
 }
 
 
@@ -14,6 +14,7 @@ const getAllPosts = async(accessToken:string) =>{
   console.log("get all posts")
   try{
     const responseStudents:any = await PostApi.getAllPosts(accessToken);
+    console.log("API Response:", responseStudents); // Log the response
     let posts = Array<Post>();
     if(responseStudents.data){
       responseStudents.data.forEach((p:Post)=>{
@@ -33,25 +34,27 @@ const getAllPosts = async(accessToken:string) =>{
   }
 }
 
-const getPostById = async(id:string) =>{
-    console.log("Get Post By Id");
-    const studentResponse = await PostApi.getStudentById(id);
-    return studentResponse.data;
+
+const addPost = async (post: Post) => {
+  console.log('addPost');
+  const data = {
+    _id: post._id,
+    postText: post.postText,
+    owner: post.owner,
+    postImageUrl: post.postImageUrl || null // Ensure postImageUrl is handled correctly
+  }
+  try {
+    const res = await PostApi.addPost(data);
+    console.log("Post added:", res); // Log the response
+  } catch (err) {
+    console.log("add post failed:", err);
+  }
 }
 
-const addPost = async(post:Post) =>{
-    console.log('addStudent');
-    const data = {
-      _id:post._id,
-      postText:post.postText,
-      owner:post.owner,
-      postImageUrl:post.postImageUrl
-    }
-    try{
-      const res = await PostApi.addPost(data);
-    }catch(err){
-      console.log("add student failed");
-    }
+const updatePost = async(idPost:string,content:string|undefined,image:string|undefined) =>{
+  const resUpdatePost = await PostApi.updatePost(idPost,content,image);
+  return resUpdatePost;
+
 }
 
 const deletePost = async(id:string)=>{
@@ -88,4 +91,4 @@ const uploadImage = async(imageUri:string) =>{
 }
 
 
-export default {getAllPosts,getPostById,addPost,deletePost,uploadImage};
+export default {getAllPosts,addPost,updatePost,deletePost,uploadImage};

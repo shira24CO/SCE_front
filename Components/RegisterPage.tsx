@@ -1,10 +1,10 @@
 import {Button,View,Text,TextInput,StyleSheet, TouchableOpacity,Image, StatusBar, ScrollView} from 'react-native';
 import { useState,FC, useEffect } from 'react';
 import RegisterApi from '../api/RegisterApi';
+import AddPictureApi from '../api/AddPictureApi';
 import { Feather } from '@expo/vector-icons';
 import { Fontisto } from '@expo/vector-icons';
 import { FontAwesome6 } from '@expo/vector-icons';
-import AddPictureApi from '../api/AddPictureApi';
 
 const RegisterPage: FC<{navigation:any}> = ({navigation}) =>{
     const [userEmail,setUserEmail] = useState<string>("");
@@ -16,7 +16,13 @@ const RegisterPage: FC<{navigation:any}> = ({navigation}) =>{
     const [lastName,setLastName] = useState<string>("");
     const [userInstitution, setInstitutionName] = useState<string>("");
 
-    useEffect(()=>{AddPictureApi.askCameraPermission()},[]);
+    useEffect(()=>{
+        AddPictureApi.askCameraPermission();
+        navigation.setOptions({
+            headerRight:()=><Text></Text>
+        })
+    }
+        ,[]);
 
     const handleErrorInRegistration = () =>{
         setFirstName("");
@@ -26,13 +32,22 @@ const RegisterPage: FC<{navigation:any}> = ({navigation}) =>{
         setYearOfDegree("");
         setUserCountry("");
         setInstitutionName("");
+        
 
     }
 
-    const handleUserRegister = async () =>{
-        const userImageUrl = await AddPictureApi.onSave(userImage);
+    const handleUserRegister = async () => {
+        let userImageUrl = "";
         console.log("handleUserRegister()--->url = "+userImageUrl);
-        
+        if (userImage) {
+            userImageUrl = await AddPictureApi.onSave(userImage);
+            if (!userImageUrl) {
+                console.log("Image upload failed");
+                return alert("Failed to upload image. Please try again.");
+            }
+        }
+        console.log("handleUserRegister()--->url = "+userImageUrl);
+
         const resUserRegister = await RegisterApi.registerUser(firstName,lastName,userEmail,userPassword,userImageUrl,userYear,userCountry, userInstitution);
         //User already exists in the application or email/password is missing
         if(resUserRegister.status == 409){
@@ -45,8 +60,14 @@ const RegisterPage: FC<{navigation:any}> = ({navigation}) =>{
             return alert("One of the details is missing");
         }
        
-        if(resUserRegister.data.userTokens.accessToken){
-            navigation.navigate('StudentList',{accessToken:resUserRegister.data.userTokens.accessToken,userName:firstName+lastName})
+        if (resUserRegister.data && resUserRegister.data.userTokens && resUserRegister.data.userTokens.accessToken) {
+            navigation.navigate('HomePage', {
+                accessToken: resUserRegister.data.userTokens.accessToken,
+                userName: firstName + " " + lastName,
+            });
+        } else {
+            console.log("Registration failed", resUserRegister.data);
+            alert("Registration failed. Please try again.");
         }
     }
     return (
@@ -90,7 +111,7 @@ const RegisterPage: FC<{navigation:any}> = ({navigation}) =>{
                                 <TextInput style={styles.input}
                                     value={firstName}
                                     onChangeText={setFirstName}
-                                    placeholder="First Name..."
+                                    placeholder="First Name"
                                     textContentType='name'
                                 ></TextInput>
                     </View>
@@ -99,7 +120,7 @@ const RegisterPage: FC<{navigation:any}> = ({navigation}) =>{
                                 <TextInput style={styles.input}
                                     value={lastName}
                                     onChangeText={setLastName}
-                                    placeholder="Last Name..."
+                                    placeholder="Last Name"
                                     textContentType='name'
                                 ></TextInput>
                     </View>
@@ -108,7 +129,7 @@ const RegisterPage: FC<{navigation:any}> = ({navigation}) =>{
                             <TextInput style={styles.input}
                                 value={userEmail}
                                 onChangeText={setUserEmail}
-                                placeholder="Your Email goes here..."
+                                placeholder="Your Email"
                                 textContentType='emailAddress'
                             ></TextInput>
                     </View>
@@ -120,7 +141,7 @@ const RegisterPage: FC<{navigation:any}> = ({navigation}) =>{
                                 textContentType='password'
                                 onChangeText={setUserPassword}
                                 secureTextEntry={true}
-                                placeholder="Your Password goes here..."
+                                placeholder="Your Password"
                             ></TextInput>
                     </View>
 
@@ -148,7 +169,7 @@ const RegisterPage: FC<{navigation:any}> = ({navigation}) =>{
                         <TextInput style={styles.input}
                             value={userInstitution}
                             onChangeText={setInstitutionName}
-                            placeholder="Academic Institution"
+                            placeholder="Your Academic Institution"
                         />
                     </View>
                     
@@ -173,11 +194,11 @@ const styles = StyleSheet.create({
         flex:1,
         flexDirection:'column',
         //alignItems:'center',
-        //backgroundColor:'#80f28a94'
+        backgroundColor:'#a1cfff'
     },
     scrollView:{
         marginHorizontal: 10,
-        backgroundColor:'white'
+        backgroundColor:'#a1cfff'
     },
     heading:{
         //top:20,
@@ -245,7 +266,8 @@ const styles = StyleSheet.create({
         justifyContent:'center',
         alignItems:'center',
         top:0,
-        left:40
+        left:40,
+        margin: 50
     },
     registerArrow:{
         right:1
