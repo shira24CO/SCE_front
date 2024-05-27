@@ -15,22 +15,23 @@ const getAllPosts = async(accessToken:string) =>{
   try{
     const responseStudents:any = await PostApi.getAllPosts(accessToken);
     console.log("API Response:", responseStudents); // Log the response
-    let posts = Array<Post>();
-    if(responseStudents.data){
-      responseStudents.data.forEach((p:Post)=>{
+    let posts: Post[] = [];
+    if (Array.isArray(responseStudents)) {
+      responseStudents.forEach((p: any) => {
         const post: Post = {
-          _id:p._id,
-          postText:p.postText,
-          owner:p.owner,
-          postImageUrl:p.postImageUrl
-        }
+          _id: p._id,
+          postText: p.postText,
+          owner: p.owner,
+          postImageUrl: p.postImageUrl || null // Handle possible null values
+        };
         posts.push(post);
       });
     }
+    console.log("Processed Posts:", posts); // Log the processed posts
     return posts; 
   }catch(err){
     console.log("Failed Reading Posts from server: "+err);
-    return Array<Post>();
+    return [];
   }
 }
 

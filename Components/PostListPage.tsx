@@ -173,7 +173,7 @@ const PostListPage: FC<{
           }
         </View>
 
-        <View>
+        <View style={styles.imageContainer}>
           {postImage ? <Image style={styles.postImage} source={{ uri: postImage }} /> : <Image style={styles.postImage} source={require("../assets/man_4140048.png")} />}
         </View>
 
@@ -186,65 +186,65 @@ const PostListPage: FC<{
 const styles = StyleSheet.create({
   listrow: {
     flexDirection: 'column',
-    marginHorizontal: 2,
-    marginVertical: 5,
+    marginHorizontal: 10,
+    marginVertical: 10,
+    padding: 10,
     elevation: 1,
     borderWidth: 1,
-    borderColor: '#18c5d9'
+    borderColor: '#18c5d9',
+    borderRadius: 10,
+    backgroundColor: '#fff'
   },
   topPart: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center'
+    alignItems: 'center',
+    marginBottom: 10
   },
   imageAndName: {
     flexDirection: 'row',
     alignItems: 'center'
   },
   middlePart: {
-
+    marginBottom: 10
   },
   postImage: {
-
-    justifyContent: 'flex-start',
-    height: 400,
-    width: 400,
-    left: 0
-
+    height: 150,
+    width: '100%',
+    borderRadius: 10,
+    resizeMode: 'cover'
   },
   avatar: {
-    alignSelf: 'center',
-    height: 50,
-    width: 50,
-    margin: 10,
-    borderRadius: 10
+    height: 40,
+    width: 40,
+    borderRadius: 20,
+    marginRight: 10
   },
   name: {
-    fontSize: 25,
-    marginBottom: 15,
+    fontSize: 16,
     fontWeight: 'bold',
-    left: 0
   },
   edit: {
-    right: 0
+    marginRight: 10
   },
   content: {
     fontStyle: 'normal',
-    fontSize: 20,
-
+    fontSize: 14,
+    marginBottom: 10
   },
   buttons: {
     flexDirection: 'row',
     justifyContent: 'space-evenly',
-    top: 5
   },
   saveBtn: {
-    backgroundColor: 'green'
-
+    backgroundColor: 'green',
+    borderRadius: 5,
+    overflow: 'hidden'
   },
   cancelBtn: {
-    backgroundColor: 'red'
-
+    backgroundColor: 'red',
+    borderRadius: 5,
+    overflow: 'hidden'
   },
   mainView: {
     justifyContent: 'center',
@@ -256,22 +256,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 20,
     padding: 35,
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
   cameraButton: {
-    position: 'absolute',
-    bottom: -15,
-    left: 15,
-    width: 50,
-    height: 50
+    marginVertical: 10
   },
   galleryButton: {
-    position: 'absolute',
-    bottom: -15,
-    right: 15,
-    width: 50,
-    height: 50
+    marginVertical: 10
+  },
+  imageContainer: {
+    alignItems: 'center'
   }
-
 });
 
 export default PostListPage;
