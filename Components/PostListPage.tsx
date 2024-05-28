@@ -1,4 +1,4 @@
-import { StyleSheet, Button, Text, View, Image, Alert, TouchableOpacity, Pressable, Platform, TextInput, StatusBar, TouchableHighlight, Modal } from 'react-native';
+import { StyleSheet, Button, Text, View, Image, Alert, TouchableOpacity, TextInput, StatusBar, TouchableHighlight, Modal } from 'react-native';
 import React, { FC, useEffect, useState, useRef } from 'react';
 import AddPictureApi from '../api/AddPictureApi';
 import { Entypo } from '@expo/vector-icons';
@@ -33,9 +33,11 @@ const PostListPage: FC<{
 
   const activateContentField = () => {
     setIsEditContent(true);
-    if (postContentRef.current) {
-      postContentRef.current.focus();
-    }
+    setTimeout(() => {
+      if (postContentRef.current) {
+        postContentRef.current.focus();
+      }
+    }, 100); // Delay to ensure state update
   }
 
   const onSave = async () => {
@@ -45,10 +47,15 @@ const PostListPage: FC<{
       setDisplayActivityIndicator(true);
       setTimeout(() => {
         setDisplayActivityIndicator(false);
-        Alert.alert('Changes Saved');
+        Alert.alert(
+          'The changes have been saved',
+          'Click "OK" and you can see your updated post',
+          [{ text: 'OK' }]
+        );
       }, 2000);
     }
   }
+  
 
   const onDelete = async () => {
     Alert.alert("Delete", "Are you sure you want to delete this Post?",
@@ -69,7 +76,7 @@ const PostListPage: FC<{
           }
         }
       },
-      { text: "No, I changed my mind" }]
+      { text: "No" }]
     );
   }
 
@@ -99,9 +106,18 @@ const PostListPage: FC<{
             <Entypo style={styles.edit} name="edit" size={24} color="black"
               onPress={
                 () => {
-                  Alert.alert("Edit Post", "What do you want to edit?", [
-                    { text: "Post Content", onPress: () => activateContentField() },
-                    { text: "Post Image", onPress: () => setIsImgEdit(true) }
+                  Alert.alert("Edit Post", "Do you want to edit?", [
+                    {
+                      text: "Yes", onPress: () => {
+                        activateContentField();
+                      }
+                    },
+                    {
+                      text: "No", onPress: () => {
+                        setIsImgEdit(false);
+                        setIsEditContent(false);
+                      }
+                    }
                   ])
                 }
               } />
@@ -116,6 +132,7 @@ const PostListPage: FC<{
             ref={postContentRef}
             onChangeText={setPostContent}
             value={postContent}
+            multiline
           />
           {displayActivityIndicator && <ActivityIndicator size={100} />}
           {isEditContent && <View style={styles.buttons}>
@@ -193,7 +210,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#18c5d9',
     borderRadius: 10,
-    backgroundColor: '#fff'
+    backgroundColor: '#cfe2f3'
   },
   topPart: {
     flexDirection: 'row',

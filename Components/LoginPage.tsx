@@ -165,7 +165,7 @@ const styles =StyleSheet.create(
     loginText:{
         fontWeight:'bold',
         fontSize:20,
-        right:50
+        right:20
     },
     arrowLogIn:{
         right:1,

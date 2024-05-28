@@ -123,7 +123,8 @@ const HomePage : FC<{navigation:any,route:any}> = ({navigation,route}) => {
 
 const styles = StyleSheet.create({
   postPage:{
-    flex:1
+    flex:1,
+    backgroundColor:'#a1cfff'
   },
   helloUser:{
     fontSize:20,
